@@ -1,9 +1,11 @@
 package com.example.tabele_igraci.dto;
 
 import com.example.tabele_igraci.entity.TimoviPrimaoci;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class IgracDTO {
 
     private String ime;
@@ -12,6 +14,8 @@ public class IgracDTO {
 
     private List<OcenaDTO> ocene;
     private List<TimoviPrimaociDTO> timoviPrimaoci;
+
+    public IgracDTO(){}
 
     public IgracDTO(String ime, String klub, List<String> titule) {
         this.ime = ime;
@@ -26,6 +30,20 @@ public class IgracDTO {
         this.titule = titule;
         this.ocene = ocene;
         this.timoviPrimaoci = timoviPrimaoci;
+    }
+
+    public IgracDTO(String ime, String klub, List<String> titule, List<OcenaDTO> ocene) {
+        this.ime = ime;
+        this.klub = klub;
+        this.titule = titule;
+        this.ocene = ocene;
+    }
+
+    public IgracDTO(String klub, List<String> titule, List<TimoviPrimaociDTO> timoviPrimaoci,String ime) {
+        this.klub = klub;
+        this.titule = titule;
+        this.timoviPrimaoci = timoviPrimaoci;
+        this.ime = ime;
     }
 
     public String getIme() {

@@ -11,6 +11,8 @@ public class OcenaDTO {
         this.ocena = ocena;
     }
 
+    public OcenaDTO(){}
+
     public String getOcenjivac() {
         return ocenjivac;
     }
@@ -26,4 +28,6 @@ public class OcenaDTO {
     public void setOcena(Long ocena) {
         this.ocena = ocena;
     }
+
+
 }

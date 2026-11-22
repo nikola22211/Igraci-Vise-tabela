@@ -53,22 +53,24 @@ public class LoptaServiceImpl implements LoptaService{
 
     @Transactional
     @Override
-    public IgracDTO getIgracDTO(Long theId) {
+    public IgracDTO getIgracWithOceneDTO(Long theId) {
        Igrac igrac = igracRepository.findByIdWithOcene(theId).orElseThrow(()->
                new RuntimeException("Igrac nije pronadjen"));
 
-        System.out.println("Ocene: " + igrac.getOcene().size());
-        System.out.println("Primaoci: " + igrac.getTimoviPrimaoci().size());
-        Igrac igrac2 = igracRepository.findByIdWithPrimaoci((theId)).orElseThrow(()->
-                new RuntimeException("Igrac nije pronadjen"));;
+       List<OcenaDTO> oceneDTO = igrac.getOcene().stream().map(this::convertToDTOOcena).toList();
 
-        System.out.println("Ista instanca: " + (igrac == igrac2));
+       return new IgracDTO(igrac.getIme(), igrac.getKlub(),igrac.getTitule(),oceneDTO);
+    }
 
-        System.out.println("Ocene nakon drugog upita: " + igrac.getOcene().size());
+    @Override
+    public IgracDTO getIgracWithPrimaociDTO(Long theId) {
+        Igrac igrac = igracRepository.findByIdWithPrimaoci(theId).orElseThrow(()->
+                new RuntimeException("Igrac sa id "+ theId + " nije pronadjen."));
 
-        System.out.println("Primaoci nakon drugog upita: " + igrac.getTimoviPrimaoci().size());
+        List<TimoviPrimaociDTO> primaociDTO = igrac.getTimoviPrimaoci().stream().map(this::convertToDTOTimoviPrimaoci)
+                .toList();
 
-       return convertAllToDTO(igrac);
+        return new IgracDTO(igrac.getKlub(),igrac.getTitule(),primaociDTO,igrac.getIme());
     }
 
     @Override
@@ -105,5 +107,103 @@ public class LoptaServiceImpl implements LoptaService{
     @Transactional
     public List<IgracDTO> getAllDTO() {
         return igracRepository.findAll().stream().map(this::convertToDTO).toList();
+    }
+
+    @Override
+    public List<OcenaDTO> getOceneIgraca(Long igracId) {
+        return ocenaRepository.findByIgraciId(igracId).stream()
+                .map(this::convertToDTOOcena).toList();
+    }
+
+    @Override
+    public List<TimoviPrimaociDTO> getTimoviPrimaociIgraca(Long igracId) {
+        return timoviPrimaociRepository.findByIgracId(igracId)
+                .stream().map(this::convertToDTOTimoviPrimaoci).toList();
+    }
+
+    @Override
+    public Igrac addIgrac(IgracDTO igrac) {
+        Igrac igracPom = new Igrac();
+
+        igracPom.setIme(igrac.getIme());
+        igracPom.setKlub(igrac.getKlub());
+        igracPom.setTitule(igrac.getTitule());
+
+        return igracRepository.save(igracPom);
+    }
+
+    @Transactional
+    @Override
+    public IgracDTO addSveIgrac(IgracDTO igracDTO, OcenaDTO ocenaDTO, TimoviPrimaociDTO timoviPrimaociDTO) {
+        TimoviPrimaoci timoviPrimaoci = new TimoviPrimaoci(timoviPrimaociDTO.getKlub(),
+                timoviPrimaociDTO.getGolovi());
+        Ocena ocena = new Ocena(ocenaDTO.getOcenjivac(),
+                ocenaDTO.getOcena());
+
+        Igrac igrac = new Igrac(igracDTO.getIme(), igracDTO.getKlub(), igracDTO.getTitule());
+
+        igrac.addTimoviPrimaoci(timoviPrimaoci);
+        igrac.addOcena(ocena);
+
+        igracRepository.save(igrac);
+
+        return convertAllToDTO(igrac);
+    }
+    @Transactional
+    @Override
+    public IgracDTO dodajOcenuIgracu(OcenaDTO ocenaDTO,Long igracId) {
+        Igrac igrac = igracRepository.findById(igracId).orElseThrow(
+                ()->new RuntimeException("Igrac ne postoji id="+igracId)
+        );
+
+        Ocena ocena = new Ocena(ocenaDTO.getOcenjivac(),ocenaDTO.getOcena());
+
+        igrac.addOcena(ocena);
+
+        igracRepository.save(igrac);
+
+        List<OcenaDTO> oceneDTO = igrac.getOcene().stream().map(this::convertToDTOOcena).toList();
+
+        return new IgracDTO(igrac.getIme(),igrac.getKlub(),igrac.getTitule(),
+                oceneDTO);
+
+    }
+
+    @Transactional
+    @Override
+    public IgracDTO dodajTimPrimaocIgracu(TimoviPrimaociDTO timoviPrimaociDTO, Long igracId) {
+        Igrac igrac = igracRepository.findById(igracId).orElseThrow(()->
+                new RuntimeException("Nema tog igraca"));
+
+        TimoviPrimaoci timoviPrimaoci = new TimoviPrimaoci(timoviPrimaociDTO.getKlub(),
+                timoviPrimaociDTO.getGolovi(),igrac);
+
+        igrac.addTimoviPrimaoci(timoviPrimaoci);
+
+        igracRepository.save(igrac);
+        List<TimoviPrimaociDTO> timoviPrimaociDTO1 = igrac.getTimoviPrimaoci().stream()
+                .map(this::convertToDTOTimoviPrimaoci).toList();
+
+        IgracDTO igrac1 = new IgracDTO(igrac.getKlub(),igrac.getTitule(),timoviPrimaociDTO1,igrac.getIme());
+
+        return igrac1;
+    }
+
+    @Transactional
+    @Override
+    public void deleteIgrac(Long igracId) {
+
+        Igrac igrac = igracRepository.findById(igracId).orElseThrow(
+                ()->new RuntimeException("Nema tog igraca sa id" +
+                        "jem" + igracId));
+
+        for(Ocena ocenaPom : igrac.getOcene()){
+            ocenaPom.getIgraci().remove(igrac);
+        }
+
+        igrac.getOcene().clear();
+
+        igracRepository.delete(igrac);
+
     }
 }

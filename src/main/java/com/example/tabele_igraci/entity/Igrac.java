@@ -28,12 +28,12 @@ public class Igrac {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "igrac", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<TimoviPrimaoci> timoviPrimaoci;
+    private List<TimoviPrimaoci> timoviPrimaoci = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH,CascadeType.PERSIST}
             , mappedBy = "igraci")
-    private List<Ocena> ocene;
+    private List<Ocena> ocene = new ArrayList<>();
 
     public void addOcena(Ocena ocena){
         if(ocene == null){
@@ -61,4 +61,12 @@ public class Igrac {
         this.klub = klub;
         this.titule = titule;
     }
+
+    public Igrac(String ime, String klub, List<String> titule, List<Ocena> ocene) {
+        this.ime = ime;
+        this.klub = klub;
+        this.titule = titule;
+        this.ocene = ocene;
+    }
+
 }

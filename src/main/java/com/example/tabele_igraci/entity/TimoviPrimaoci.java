@@ -32,4 +32,10 @@ public class TimoviPrimaoci {
         this.klub = klub;
         this.golovi = golovi;
     }
+
+    public TimoviPrimaoci(String klub, Long golovi, Igrac igrac) {
+        this.klub = klub;
+        this.golovi = golovi;
+        this.igrac = igrac;
+    }
 }
